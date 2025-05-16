@@ -4,8 +4,9 @@ A pair of commands to convert between `asciinema`'s asciicasts and `script`'s ty
 Supports asciicast v2 and v3 for input, and asciicast v2 for output.
 
 ## Installation
+
 ```
-go install github.com/wk-y/asciicast2script/cmd/...
+go install github.com/wk-y/asciicast2script/cmd/...@latest
 ```
 
 ## Usage examples
