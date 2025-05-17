@@ -1,7 +1,9 @@
 # asciicast2script / script2asciicast
 
 A pair of commands to convert between `asciinema`'s asciicasts and `script`'s typescript/timingfile.
-Supports asciicast v2 and v3 for input, and asciicast v2 for output.
+asciicast2script supports both v2 and v3 asciicasts.
+script2asciicast outputs asciicast v2 by default.
+The `-v3` flag can be used to output asciicast v3.
 
 ## Installation
 
