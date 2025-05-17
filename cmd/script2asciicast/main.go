@@ -19,11 +19,13 @@ import (
 var typescriptPath string
 var timingfilePath string
 var overwrite bool
+var v3 bool // write asciicast v3
 
 func init() {
 	flag.StringVar(&typescriptPath, "typescript", "typescript", "input typescript file")
 	flag.StringVar(&timingfilePath, "timingfile", "timingfile", "input timing file")
 	flag.BoolVar(&overwrite, "overwrite", false, "overwrite existing output file")
+	flag.BoolVar(&v3, "v3", false, "use asciicast v3 format")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [OPTION]... OUTFILE.cast\n\n", os.Args[0])
 		flag.PrintDefaults()
@@ -70,7 +72,12 @@ func main() {
 	}
 	defer timing.Close()
 
-	err = scriptToAsciicast(script, bufio.NewReader(timing), cast)
+	converter := scriptToAsciicast
+	if v3 {
+		converter = scriptToAsciicastV3
+	}
+
+	err = converter(script, bufio.NewReader(timing), cast)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -127,6 +134,79 @@ func scriptToAsciicast(typescript io.Reader, timingfile *bufio.Reader, cast io.W
 
 		acEvent := asciicast.Event{
 			Time: time,
+			Data: sEvent.Data,
+		}
+
+		var ignore bool
+		switch sEvent.Code {
+		case 'I':
+			acEvent.Code = "i"
+		case 'O':
+			acEvent.Code = "o"
+		default:
+			ignore = true
+		}
+
+		if ignore {
+			continue
+		}
+
+		if err := encoder.Encode(acEvent); err != nil {
+			return err
+		}
+	}
+}
+
+func scriptToAsciicastV3(typescript io.Reader, timingfile *bufio.Reader, cast io.Writer) error {
+	encoder := json.NewEncoder(cast)
+	tsBuffered := bufio.NewReader(typescript)
+
+	headerBytes, err := tsBuffered.ReadBytes('\n')
+	if err != nil {
+		return err
+	}
+
+	header, err := script.ParseHeader(string(headerBytes))
+	if err != nil {
+		return err
+	}
+
+	timestamp := header.Start.Unix()
+	env := map[string]string{}
+	if header.Term != "" {
+		env["TERM"] = header.Term
+	}
+
+	acHeader := asciicast.HeaderV3{
+		Version: 3,
+		Term: asciicast.TermInfo{
+			Cols: header.Columns,
+			Rows: header.Lines,
+			Type: &header.Term,
+		},
+		Timestamp: &timestamp,
+		Env:       env,
+	}
+
+	if header.Command != "" {
+		acHeader.Command = &header.Command
+	}
+
+	if err := encoder.Encode(acHeader); err != nil {
+		return err
+	}
+
+	var sEvent script.Event
+	for {
+		if err := sEvent.Take(tsBuffered, timingfile); err != nil {
+			if err == io.EOF {
+				return nil
+			}
+			return err
+		}
+
+		acEvent := asciicast.Event{
+			Time: sEvent.ElapsedSeconds, // asciicast v3 uses relative time
 			Data: sEvent.Data,
 		}
 
