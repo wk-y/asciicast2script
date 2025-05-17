@@ -29,6 +29,7 @@ type Header interface {
 	IdleTimeLimit() (idleTimeLimit int, ok bool)
 	Env() map[string]string
 	Theme() map[string]string
+	RelativeTime() bool // interpret time as relative
 }
 
 func DecodeHeader(rawHeader []byte) (Header, error) {
@@ -134,6 +135,10 @@ func (h HeaderV2Iface) Theme() map[string]string {
 	return h.Header.Theme
 }
 
+func (h HeaderV2Iface) RelativeTime() bool {
+	return false
+}
+
 type TermInfo struct {
 	Cols    int               `json:"cols"`
 	Rows    int               `json:"rows"`
@@ -220,4 +225,8 @@ func (h HeaderV3Iface) Env() map[string]string {
 
 func (h HeaderV3Iface) Theme() map[string]string {
 	return h.Header.Term.Theme
+}
+
+func (h HeaderV3Iface) RelativeTime() bool {
+	return true
 }

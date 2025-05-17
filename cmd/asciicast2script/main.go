@@ -120,8 +120,13 @@ func asciicastToScript(cast io.Reader, typescript, timingfile io.Writer) error {
 		}
 
 		sEvent := script.Event{
-			Data:           acEvent.Data,
-			ElapsedSeconds: acEvent.Time - previousEventTime,
+			Data: acEvent.Data,
+		}
+
+		if header.RelativeTime() {
+			sEvent.ElapsedSeconds = acEvent.Time
+		} else {
+			sEvent.ElapsedSeconds = acEvent.Time - previousEventTime
 		}
 
 		var ignore bool
