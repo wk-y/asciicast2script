@@ -134,22 +134,23 @@ func (h HeaderV2Iface) Theme() map[string]string {
 	return h.Header.Theme
 }
 
+type TermInfo struct {
+	Cols    int               `json:"cols"`
+	Rows    int               `json:"rows"`
+	Type    *string           `json:"type"`
+	Version *string           `json:"version"`
+	Theme   map[string]string `json:"theme"`
+}
+
 type HeaderV3 struct {
-	Version int `json:"version"`
-	Term    struct {
-		Cols int     `json:"cols"`
-		Rows int     `json:"rows"`
-		Type *string `json:"type"`
-	} `json:"term"`
-	Width         int               `json:"width"`
-	Height        int               `json:"height"`
+	Version       int               `json:"version"`
+	Term          TermInfo          `json:"term"`
 	Timestamp     *int64            `json:"timestamp"`
 	Duration      *float64          `json:"duration"`
 	Command       *string           `json:"command"`
 	Title         *string           `json:"title"`
 	IdleTimeLimit *int              `json:"idle_time_limit"`
 	Env           map[string]string `json:"env"`
-	Theme         map[string]string `json:"theme"`
 }
 
 // Wrapper to avoid field/method collisions
@@ -164,11 +165,11 @@ func (h HeaderV3Iface) Version() int {
 }
 
 func (h HeaderV3Iface) Width() int {
-	return h.Header.Width
+	return h.Header.Term.Cols
 }
 
 func (h HeaderV3Iface) Height() int {
-	return h.Header.Height
+	return h.Header.Term.Rows
 }
 
 func (h HeaderV3Iface) Term() (term string, ok bool) {
@@ -218,5 +219,5 @@ func (h HeaderV3Iface) Env() map[string]string {
 }
 
 func (h HeaderV3Iface) Theme() map[string]string {
-	return h.Header.Theme
+	return h.Header.Term.Theme
 }
