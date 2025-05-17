@@ -44,6 +44,8 @@ func main() {
 	outFlags := os.O_WRONLY | os.O_CREATE
 	if !overwrite {
 		outFlags |= os.O_EXCL
+	} else {
+		outFlags |= os.O_TRUNC
 	}
 
 	cast := os.Stdin

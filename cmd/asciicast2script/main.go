@@ -55,7 +55,9 @@ func main() {
 
 	outFlags := os.O_WRONLY | os.O_CREATE
 	if !overwrite {
-		outFlags |= os.O_EXCL
+		outFlags |= os.O_EXCL | os.O_TRUNC
+	} else {
+		outFlags |= os.O_TRUNC
 	}
 
 	script, err := os.OpenFile(typescriptPath, outFlags, 0644)
